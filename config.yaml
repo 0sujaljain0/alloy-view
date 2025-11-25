@@ -1,0 +1,4 @@
+alloyCluster:
+  enabled: true
+  participantSD:
+    ip: 10.54.4.210
