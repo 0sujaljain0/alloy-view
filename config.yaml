@@ -1,4 +1,4 @@
-alloyCluster:
-  enabled: true
+mode: cluster
+cluster:
   participantSD:
     ip: 10.54.4.210
