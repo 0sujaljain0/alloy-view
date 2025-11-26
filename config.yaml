@@ -1,4 +1,5 @@
 mode: cluster
 cluster:
   participantSD:
-    ip: 10.54.4.210
+    sdMode: ip
+    endpoint: 10.54.4.210

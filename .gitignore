@@ -1,3 +1,4 @@
-.*png
-.*logs
-.*pprof
+*.png
+*.log
+*.pprof
+*.prof

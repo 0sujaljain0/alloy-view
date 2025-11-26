@@ -2,7 +2,7 @@ build:
 	mkdir -p bin/ && rm -rf bin/* &&  go build -o bin/main cmd/main.go 
 
 clean_logs:
-	echo "" > ./logs.logs
+	echo "" > ./logs.log
 
 format:
 	gofmt -w .

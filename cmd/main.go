@@ -83,8 +83,13 @@ func main() {
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 
-	logFile, err := os.OpenFile("logs.logs", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-	defer logFile.Close()
+	logFile, err := os.OpenFile("logs.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	defer func() {
+		err := logFile.Close()
+		if err != nil {
+			panic(fmt.Errorf("while closing the file: %+v", err))
+		}
+	}()
 
 	if err != nil {
 		panic(fmt.Sprintf("log file not initialized: %s", err))
