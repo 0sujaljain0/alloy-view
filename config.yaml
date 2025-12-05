@@ -1,5 +1,6 @@
 mode: cluster
 cluster:
   participantSD:
-    sdMode: ip
-    endpoint: 10.54.4.210
+    sdMode: k8sService
+    namespace: alloy
+    service: alloy-sts-metrics-cluster

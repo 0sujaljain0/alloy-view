@@ -7,8 +7,8 @@ import (
 	"runtime/pprof"
 
 	"github.com/0sujaljain0/alloy-view/pkg/config"
+	"github.com/0sujaljain0/alloy-view/pkg/web"
 )
-
 
 func main() {
 	f, err := os.Create("cpu.prof")
@@ -45,4 +45,11 @@ func main() {
 		panic(err)
 	}
 	logger.Info(config.ConfigInfo())
+
+	server := web.ConfigureServer(8000, "dev.testing.server", &config, logger)
+	logger.Info(fmt.Sprintf("%s", server))
+	err = server.Start()
+	if err != nil {
+		logger.Error(err.Error())
+	}
 }

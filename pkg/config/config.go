@@ -2,15 +2,22 @@ package config
 
 import (
 	"fmt"
-	"log/slog"
 	"gopkg.in/yaml.v3"
+	"log/slog"
 )
 
 type ParticipantSDMode string
 
+const (
+	IPMODE         ParticipantSDMode = "ip"
+	K8SSERVICEMODE ParticipantSDMode = "k8sService"
+)
+
 type ParticipantSD struct {
 	ParticipantMode ParticipantSDMode `yaml:"sdMode"`
 	SDEndpoint      string            `yaml:"endpoint"`
+	k8sService      string            `yaml:"service"`
+	k8snamespace    string            `yaml:"namespace"`
 }
 
 type AlloyModeConfig interface {
@@ -22,7 +29,8 @@ type AlloyClusterModeConfig struct {
 }
 
 func (c *AlloyClusterModeConfig) ConfigInfo() string {
-	return fmt.Sprintf("{ Mode: %s | sdEndpoint: %s }", c.SD.ParticipantMode, c.SD.SDEndpoint)
+	return fmt.Sprintf("%+v", *c)
+	// return fmt.Sprintf("[{ OperationMode: Cluster } - { sdMode: %s | sdEndpoint: %s }]", c.SD.ParticipantMode, c.SD.SDEndpoint)
 }
 
 type AlloyIndividualModeConfig struct {
@@ -30,7 +38,8 @@ type AlloyIndividualModeConfig struct {
 }
 
 func (c *AlloyIndividualModeConfig) ConfigInfo() string {
-	return fmt.Sprintf("{ Mode: %s | sdEndpoint: %s }", c.SD.ParticipantMode, c.SD.SDEndpoint)
+	return fmt.Sprintf("%+v", *c)
+	//return fmt.Sprintf("[{ OperationMode: Individual } - { sdMode: %s | sdEndpoint: %s }]", c.SD.ParticipantMode, c.SD.SDEndpoint)
 }
 
 type RawConfigWrapper struct {
