@@ -6,14 +6,14 @@ import (
 	"net/http"
 
 	"github.com/0sujaljain0/alloy-view/pkg/config"
-	"gopkg.in/yaml.v3"
+	"github.com/0sujaljain0/alloy-view/pkg/handler"
+	// "github.com/0sujaljain0/alloy-view/pkg/state"
 )
 
 type Server struct {
 	mux    *http.ServeMux
 	port   uint16
 	id     string
-	conf   *config.AlloyModeConfig
 	logger *slog.Logger
 }
 
@@ -29,28 +29,25 @@ func (s *Server) Start() error {
 	return nil
 }
 
-func (s *Server) configDumpHandler(res http.ResponseWriter, req *http.Request) {
-	msg, err := yaml.Marshal(*s.conf)
-	if err != nil {
-
-	}
-	res.Write([]byte(msg))
-}
-
-func ConfigureServer(port uint16, id string, alloyConfig *config.AlloyModeConfig, logger *slog.Logger) *Server {
+func ConfigureServer(port uint16, id string, alloyConfig *config.AlloyConfig, logger *slog.Logger) (*Server, error) {
 	mux := http.NewServeMux()
+
 	server := &Server{
 		mux:    mux,
 		port:   port,
 		id:     id,
-		conf:   alloyConfig,
 		logger: logger,
+	}
+
+	hld, err := handler.NewHandler(*alloyConfig, logger)
+	if err != nil  {
+		return nil, err
 	}
 
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-	mux.HandleFunc("/", server.ServeHomePage)
-	mux.HandleFunc("/config", server.configDumpHandler)
 
-	return server
+	mux.HandleFunc("/", hld.ServeHomePage)
+
+	return server, nil
 }

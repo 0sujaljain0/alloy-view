@@ -1,6 +1,5 @@
 mode: cluster
-cluster:
-  participantSD:
-    sdMode: k8sService
-    namespace: alloy
-    service: alloy-sts-metrics-cluster
+serviceDiscovery:
+  sdMode: k8s
+  namespace: alloy
+  serviceName: alloy-sts-metrics

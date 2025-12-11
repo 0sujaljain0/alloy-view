@@ -1,10 +1,15 @@
 package view
 
 import "github.com/0sujaljain0/alloy-view/pkg/view/layout"
+import "github.com/0sujaljain0/alloy-view/pkg/view/components"
+import "github.com/0sujaljain0/alloy-view/pkg/state"
 
 
-templ Home() {
+
+templ Home(state state.AppState) {
     @view.BaseLayout() {
-        <div class="w-max">This is the Home Page of Alloy View</div>
+        <div class="top-14 w-full h-max flex flex-col items-center gap-14">
+            @components.ClusterInfo(state.GetNodes())
+        </div>
     }
 }

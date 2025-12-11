@@ -7,7 +7,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "gofmt -w . && templ generate && go build -o tmp/main cmd/main.go && echo \"\" > ./logs.log"
+  cmd = "templ generate && go build -o tmp/main cmd/main.go && echo \"\" > ./logs.log"
   delay = 1000
   entrypoint = ["./tmp/main"]
   exclude_dir = ["static", "node_modules", "assets", "tmp", "vendor", "testdata"]

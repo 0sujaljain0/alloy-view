@@ -12,10 +12,11 @@ templ BaseLayout() {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>Alloy View</title>
 			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
-            <link href="./static/css/tailwind.css" rel="stylesheet"/>
+            <link href="/static/css/tailwind.css" rel="stylesheet"/>
+            <link rel="icon" type="image/x-icon" href="/static/imgs/favicon.png">
 
 		</head>
-        <body class="w-screen h-screen flex flex-col items-center">
+        <body class="bg-slate-600 text-slate-200">
             @components.Navbar()
             { children... }
         </body>

@@ -1,37 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"log/slog"
 	"os"
-	"runtime/pprof"
+	"fmt"
 
 	"github.com/0sujaljain0/alloy-view/pkg/config"
+	"github.com/0sujaljain0/alloy-view/pkg/utils"
 	"github.com/0sujaljain0/alloy-view/pkg/web"
 )
 
 func main() {
-	f, err := os.Create("cpu.prof")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+	// f, err := os.Create("cpu.prof")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer f.Close()
+	// pprof.StartCPUProfile(f)
+	// defer pprof.StopCPUProfile()
 
-	logFile, err := os.OpenFile("logs.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-	defer func() {
-		err := logFile.Close()
-		if err != nil {
-			panic(fmt.Errorf("while closing the file: %+v", err))
-		}
-	}()
-
-	if err != nil {
-		panic(fmt.Sprintf("log file not initialized: %s", err))
-	}
-
-	logger := slog.New(slog.NewTextHandler(logFile, nil))
+	logger, closer := utils.NewLogger("logs.log")
+	defer closer()
 
 	data, err := os.ReadFile("config.yaml")
 	if err != nil {
@@ -40,13 +28,19 @@ func main() {
 	}
 
 	logger.Info("Reading config.yaml")
-	config, err := config.ParseConfig(data, logger)
+	cfg, err := config.ParseConfig(data)
 	if err != nil {
-		panic(err)
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
-	logger.Info(config.ConfigInfo())
 
-	server := web.ConfigureServer(8000, "dev.testing.server", &config, logger)
+	logger.Info(fmt.Sprintf("%s", *cfg))
+
+	server, err := web.ConfigureServer(8093, "dev.testing.server", cfg, logger)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 	logger.Info(fmt.Sprintf("%s", server))
 	err = server.Start()
 	if err != nil {
