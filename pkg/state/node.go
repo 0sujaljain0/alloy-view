@@ -5,9 +5,9 @@ type AlloyNode interface {
 }
 
 type K8sAlloyNode struct {
-	PodName string
+	PodName  string
 	NodeName string
-	IP string
+	IP       string
 }
 
 func (n *K8sAlloyNode) GetNodeName() string { return n.PodName }

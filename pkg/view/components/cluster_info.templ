@@ -4,12 +4,40 @@ import "github.com/0sujaljain0/alloy-view/pkg/state"
 import "github.com/0sujaljain0/alloy-view/pkg/utils"
 import "fmt"
 
-// templ ClusterInfoEntryBox(node state.AlloyNode, anchorAttr templ.Attributes) {
-//     <div class="px-2 py-1 rounded-md border-2 border-white hover:bg-white hover:text-slate-700">
-//         <a target="_blank" { anchorAttr... }>{node.}:12345</a>
-//     </div>
-// }
 
+
+templ ClusterInfo(clusterNodes []state.AlloyNode) {
+    <div id="cluster-info-container" class="w-full items-center flex flex-col">
+        <div class="flex flex-col items-center justify-center gap-10 px-4 py-3 w-4/5">
+            <span class="font-extrabold text-2xl text-white">Cluster Overview</span>
+            <div class="px-4 py-3 rounded-md flex flex-col items-center gap-5 w-max max-w-3xl bg-slate-700 ">
+                <span class="font-semibold text-lg text-slate-200">Nodes ({ fmt.Sprint(len(clusterNodes)) })</span>
+                
+                <div class="grid grid-cols-2 gap-3 w-full rounded-md max-h-[22rem] overflow-y-auto pr-2">
+                    for _, item := range clusterNodes {
+                        switch it := item.(type){
+                            case *state.K8sAlloyNode:
+                                {{
+                                    anchorAttr, err := utils.CreateTemplAttrs("href", fmt.Sprintf("http://%s:%d", it.IP, 12345))
+                                    if err != nil { panic(err) }
+                                }}    
+                                @K8sAlloyNode(it, anchorAttr)
+
+                            default:
+                                <span class="text-red-400"> Fallback Type Error </span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+/////////////////////////////////
+///      AlloyNodes Components
+////////////////////////////////
 templ K8sAlloyNode(node *state.K8sAlloyNode, anchorAttr templ.Attributes) {
     <a 
         target="_blank" 
@@ -41,30 +69,6 @@ templ K8sAlloyNode(node *state.K8sAlloyNode, anchorAttr templ.Attributes) {
         }
     </a>
 }
-
-
-templ ClusterInfo(clusterNodes []state.AlloyNode) {
-    <div class="flex flex-col items-center justify-center gap-10 px-4 py-3 w-4/5">
-        <span class="font-extrabold text-2xl text-white">Cluster Overview</span>
-        
-        <div class="px-4 py-3 rounded-md flex flex-col items-center gap-5 w-max max-w-3xl bg-slate-700 ">
-            <span class="font-semibold text-lg text-slate-200">Nodes ({ fmt.Sprint(len(clusterNodes)) })</span>
-            
-            <div class="grid grid-cols-2 gap-3 w-full rounded-md max-h-[22rem] overflow-y-auto pr-2">
-                for _, item := range clusterNodes {
-                    switch it := item.(type){
-                        case *state.K8sAlloyNode:
-                            {{
-                                anchorAttr, err := utils.CreateTemplAttrs("href", fmt.Sprintf("http://%s:%d", it.IP, 12345))
-                                if err != nil { panic(err) }
-                            }}    
-                            @K8sAlloyNode(it, anchorAttr)
-
-                        default:
-                            <span class="text-red-400"> Fallback Type Error </span>
-                    }
-                }
-            </div>
-        </div>
-    </div>
-}
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////

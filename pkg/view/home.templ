@@ -8,7 +8,8 @@ import "github.com/0sujaljain0/alloy-view/pkg/state"
 
 templ Home(state state.AppState) {
     @view.BaseLayout() {
-        <div class="top-14 w-full h-max flex flex-col items-center gap-14">
+        <div class="top-14 w-full h-max flex flex-col items-center gap-14" hx-get="/cluster_info" hx-trigger="every 10s"
+        hx-swap="innerHTML">
             @components.ClusterInfo(state.GetNodes())
         </div>
     }

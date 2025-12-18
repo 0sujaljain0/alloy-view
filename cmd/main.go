@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 
 	"github.com/0sujaljain0/alloy-view/pkg/config"
 	"github.com/0sujaljain0/alloy-view/pkg/utils"

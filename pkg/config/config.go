@@ -25,10 +25,10 @@ type ClusterConfig struct {
 	SD         ServiceDiscovery
 }
 
-func (c * ClusterConfig) String() string {
+func (c *ClusterConfig) String() string {
 	return fmt.Sprintf("{ %s - %s }", &c.BaseConfig, c.SD)
 }
-func (c * ClusterConfig) GetMode() string { return c.Mode }
+func (c *ClusterConfig) GetMode() string { return c.Mode }
 func (c *ClusterConfig) Validate() error {
 	if err := c.SD.Validate(); err != nil {
 		return err
@@ -36,20 +36,19 @@ func (c *ClusterConfig) Validate() error {
 	return nil
 }
 
-func (c * ClusterConfig) UnmarshalYAML(value *yaml.Node) error {
+func (c *ClusterConfig) UnmarshalYAML(value *yaml.Node) error {
 	type plain ClusterConfig
 
 	type rawWrapper struct {
 		*plain `yaml:",inline"`
-		RawSD yaml.Node `yaml:"serviceDiscovery"`
+		RawSD  yaml.Node `yaml:"serviceDiscovery"`
 		// add more fields.
 	}
-	wrapper := rawWrapper { plain: (*plain)(c), }
+	wrapper := rawWrapper{plain: (*plain)(c)}
 	if err := value.Decode(&wrapper); err != nil {
 		return err
 	}
-	
-	
+
 	{ // ServiceDiscovery
 		type sdDisc struct {
 			SDMode string `yaml:"sdMode"`
@@ -72,7 +71,6 @@ func (c * ClusterConfig) UnmarshalYAML(value *yaml.Node) error {
 	}
 	return nil
 }
-
 
 func ParseConfig(data []byte) (*AlloyConfig, error) {
 	var node yaml.Node
@@ -99,7 +97,6 @@ func ParseConfig(data []byte) (*AlloyConfig, error) {
 	default:
 		return nil, fmt.Errorf("Invalid Mode: %s", baseConfig.Mode)
 	}
-
 
 	if err := finalConfig.Validate(); err != nil {
 		return nil, err

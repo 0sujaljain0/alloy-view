@@ -13,12 +13,14 @@ type BaseServiceDiscovery struct {
 	Mode string `yaml:"sdMode"`
 }
 
-func (sd *BaseServiceDiscovery) String() string { return fmt.Sprintf("[ serviceDiscoveryMode: %s ]", sd.Mode) }
+func (sd *BaseServiceDiscovery) String() string {
+	return fmt.Sprintf("[ serviceDiscoveryMode: %s ]", sd.Mode)
+}
 
 type K8sServiceDiscovery struct {
 	BaseServiceDiscovery `yaml:",inline"`
-	Service *string `yaml:"serviceName"`
-	Namespace *string `yaml:"namespace"`
+	Service              *string `yaml:"serviceName"`
+	Namespace            *string `yaml:"namespace"`
 }
 
 func (sd *K8sServiceDiscovery) String() string {

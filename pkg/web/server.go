@@ -7,7 +7,7 @@ import (
 
 	"github.com/0sujaljain0/alloy-view/pkg/config"
 	"github.com/0sujaljain0/alloy-view/pkg/handler"
-	// "github.com/0sujaljain0/alloy-view/pkg/state"
+	"github.com/0sujaljain0/alloy-view/pkg/middleware"
 )
 
 type Server struct {
@@ -40,14 +40,23 @@ func ConfigureServer(port uint16, id string, alloyConfig *config.AlloyConfig, lo
 	}
 
 	hld, err := handler.NewHandler(*alloyConfig, logger)
-	if err != nil  {
+	if err != nil {
 		return nil, err
 	}
 
 	fs := http.FileServer(http.Dir("./static"))
+
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
+	switch h := hld.(type) {
+	case *handler.HandlerClustered:
+		mux.HandleFunc(
+			"/cluster_info",
+			middleware.InternalOnlyEndpointMiddleware(h.ClusterInfoComp),
+		)
+	default:
+		return nil, fmt.Errorf("invalid type of handler created")
+	}
 	mux.HandleFunc("/", hld.ServeHomePage)
-
 	return server, nil
 }
