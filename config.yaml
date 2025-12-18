@@ -1,4 +1,5 @@
-alloyCluster:
-  enabled: true
-  participantSD:
-    ip: 10.54.4.210
+mode: cluster
+serviceDiscovery:
+  sdMode: k8s
+  namespace: alloy
+  serviceName: alloy-sts-metrics

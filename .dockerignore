@@ -1,0 +1,14 @@
+# Git metadata
+.git
+.gitignore
+
+# Local binaries and temp files
+tmp/
+build/
+*.exe
+*.test
+vendor/
+
+# Local env files (security risk!)
+.env
+.air.toml
