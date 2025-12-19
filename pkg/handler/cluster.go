@@ -13,5 +13,6 @@ func (h *HandlerClustered) ServeHomePage(res http.ResponseWriter, req *http.Requ
 }
 
 func (h *HandlerClustered) ClusterInfoComp(res http.ResponseWriter, req *http.Request) {
+	h.State.RefreshState()
 	components.ClusterInfo(h.State.GetNodes()).Render(context.Background(), res)
 }

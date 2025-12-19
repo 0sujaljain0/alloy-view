@@ -9,10 +9,11 @@ import (
 )
 
 type AppState interface {
-	String() string
+	String()        string
 	populateNodes() error
-	GetNodes() []AlloyNode
-	InitState() error
+	GetNodes()      []AlloyNode
+	InitState()     error
+	RefreshState()  error
 }
 
 type BaseAppState struct {
@@ -50,6 +51,10 @@ func (s *ClusteredAppState) populateNodes() error {
 		}
 
 		eps := utils.GetEPSFromK8sSvc(*sdConf.Namespace, *sdConf.Service, s.logger)
+		if len(s.Nodes) > 0 {
+			s.Nodes = nil
+			s.Nodes = make([]AlloyNode, 0)
+		}
 		for _, ep := range eps {
 			s.Nodes = append(s.Nodes, &K8sAlloyNode{
 				PodName:  ep.PodName,
@@ -69,5 +74,15 @@ func (s *ClusteredAppState) InitState() error {
 		return err
 	}
 
+	return nil
+}
+
+func (s *ClusteredAppState) RefreshState() error {
+	err := s.populateNodes()
+	if err != nil {
+		return err
+	}
+
+	return nil
 	return nil
 }

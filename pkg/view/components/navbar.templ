@@ -5,6 +5,7 @@ templ Navbar() {
         <div class="w-max font-bold text-3xl">
             <p>Alloy View</p>
         </div>
+        @Loader("cluster-info-loading-indicator")
         <ul class="w-max text-xl flex gap-10 items-center">
             <a href="/config">Config</a>
             @RefreshButton()
