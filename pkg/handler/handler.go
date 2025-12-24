@@ -12,7 +12,8 @@ import (
 type Handler interface {
 	String() string
 	ServeHomePage(res http.ResponseWriter, req *http.Request)
-	// GetAppState() *state.AppState
+	ServeNodesInfoPage(res http.ResponseWriter, req *http.Request)
+	ServeNodeHealthIndicator(res http.ResponseWriter, req *http.Request)
 }
 
 type BaseHandler struct {

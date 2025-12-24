@@ -4,71 +4,74 @@ import "github.com/0sujaljain0/alloy-view/pkg/state"
 import "github.com/0sujaljain0/alloy-view/pkg/utils"
 import "fmt"
 
-
-
 templ ClusterInfo(clusterNodes []state.AlloyNode) {
-    <div id="cluster-info-container" class="w-full items-center flex flex-col">
-        <div class="flex flex-col items-center justify-center gap-10 px-4 py-3 w-4/5">
-            <span class="font-extrabold text-2xl text-white">Cluster Overview</span>
-            <div class="px-4 py-3 rounded-md flex flex-col items-center gap-5 w-max max-w-3xl bg-slate-700 ">
-                <span class="font-semibold text-lg text-slate-200">Nodes ({ fmt.Sprint(len(clusterNodes)) })</span>
-                
-                <div class="grid grid-cols-2 gap-3 w-full rounded-md max-h-[22rem] overflow-y-auto pr-2">
-                    for _, item := range clusterNodes {
-                        switch it := item.(type){
-                            case *state.K8sAlloyNode:
-                                {{
-                                    anchorAttr, err := utils.CreateTemplAttrs("href", fmt.Sprintf("http://%s:%d", it.IP, 12345))
-                                    if err != nil { panic(err) }
-                                }}    
-                                @K8sAlloyNode(it, anchorAttr)
-
-                            default:
-                                <span class="text-red-400"> Fallback Type Error </span>
-                        }
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
+	<div id="cluster-info-container" class="w-full items-center flex flex-col">
+		<div class="flex flex-col items-center justify-center gap-10 px-4 py-3 w-4/5">
+			<span class="font-extrabold text-2xl text-white">Cluster Overview</span>
+			<div class="px-4 py-3 rounded-md flex flex-col items-center gap-5 w-max max-w-3xl bg-slate-700 ">
+				<span class="font-semibold text-lg text-slate-200">Nodes ({ fmt.Sprint(len(clusterNodes)) })</span>
+				<div class="grid grid-cols-2 gap-3 w-full rounded-md max-h-[22rem] overflow-y-auto pr-2">
+					for _, item := range clusterNodes {
+						switch it := item.(type) {
+							case *state.K8sAlloyNode:
+								{{
+									anchorAttr, err := utils.CreateTemplAttrs("href", fmt.Sprintf("http://%s:%d", it.IP, 12345))
+									if err != nil {
+										panic(err)
+									}
+								}}
+								@K8sAlloyNode(it, anchorAttr)
+							default:
+								<span class="text-red-400">Fallback Type Error </span>
+						}
+					}
+				</div>
+			</div>
+		</div>
+	</div>
 }
-
-
 
 /////////////////////////////////
 ///      AlloyNodes Components
 ////////////////////////////////
 templ K8sAlloyNode(node *state.K8sAlloyNode, anchorAttr templ.Attributes) {
-    <a 
-        target="_blank" 
-        class="group relative flex flex-col w-full min-w-[200px] p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 ease-out cursor-pointer text-left no-underline"
-        { anchorAttr... }
-    >
-        <div class="flex items-center justify-between mb-2">
-            <span class="font-mono text-sm font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
-                { node.IP }:12345
-            </span>
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-        </div>
-
-        <div class="flex items-center gap-1.5 text-xs text-slate-400 group-hover:text-slate-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-            
-            <span class="truncate max-w-[160px]" title={ node.PodName }>
-                { node.PodName }
-            </span>
-        </div>
-        
-        if node.NodeName != "" {
-             <div class="mt-1 text-[10px] uppercase tracking-wider text-slate-600 group-hover:text-slate-500">
-                { node.NodeName }
-             </div>
-        }
-    </a>
+	{{ endpoint := fmt.Sprintf("%s:%d", node.IP, 12345) }}
+	{{ healthSmallID := fmt.Sprintf("cluster-health-small-%s", node.IP) }}
+	<a
+		target="_blank"
+		class="group relative flex flex-col w-full min-w-[200px] p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 ease-out cursor-pointer text-left no-underline"
+		{ anchorAttr... }
+	>
+		<div class="flex items-center justify-between mb-2">
+			<span class="font-mono text-sm font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">
+				{ node.IP }:12345
+			</span>
+			<div 
+				id={ healthSmallID }
+				class="flex items-center justify-center"
+				hx-get={ fmt.Sprintf("/node_health?alloy_endpoint=%s&size=small", endpoint) }
+				hx-trigger="load, every 10s"
+				hx-swap="innerHTML"
+				hx-target="this"
+				hx-indicator="none"
+			>
+				@HealthIndicatorSmall(false)
+			</div>
+		</div>
+		<div class="flex items-center gap-1.5 text-xs text-slate-400 group-hover:text-slate-300">
+			<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+			<span class="truncate max-w-[160px]" title={ node.PodName }>
+				{ node.PodName }
+			</span>
+		</div>
+		if node.NodeName != "" {
+			<div class="mt-1 text-[10px] uppercase tracking-wider text-slate-600 group-hover:text-slate-500">
+				{ node.NodeName }
+			</div>
+		}
+	</a>
 }
+
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 ///////////////////////////////////////////

@@ -2,16 +2,79 @@ package handler
 
 import (
 	"context"
+	"io"
 	"net/http"
 
 	"github.com/0sujaljain0/alloy-view/pkg/view"
 	"github.com/0sujaljain0/alloy-view/pkg/view/components"
 )
 
+// /////////////// PUBLIC SERVING ///////////////////////////
 func (h *HandlerClustered) ServeHomePage(res http.ResponseWriter, req *http.Request) {
 	view.Home(h.State).Render(context.Background(), res)
 }
 
+func (h *HandlerClustered) ServeNodesInfoPage(res http.ResponseWriter, req *http.Request) {
+	h.State.RefreshState()
+	view.NodeInfoPage(h.State.GetNodes()).Render(context.Background(), res)
+}
+
+////////////////////////////////////////////////////////////
+
+//go:generate stringer -type=NodeHealthStatus
+type NodeHealthStatus uint32
+
+const (
+	HEALTHY NodeHealthStatus = iota
+	UNHEALTHY
+	NOT_REACHABLE
+)
+
+// /////////////////// INTERNAL SERVING /////////////////////
 func (h *HandlerClustered) ClusterInfoComp(res http.ResponseWriter, req *http.Request) {
+	h.State.RefreshState()
 	components.ClusterInfo(h.State.GetNodes()).Render(context.Background(), res)
 }
+
+func (h *HandlerClustered) ServeNodeHealthIndicator(res http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query()
+	endpoint := query.Get("alloy_endpoint")
+	size := query.Get("size") // "small" or "big"
+
+	if endpoint == "" {
+		http.Error(res, "alloy_endpoint is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check health status
+	healthy := h.checkNodeHealth(endpoint)
+
+	// Render appropriate indicator
+	if size == "big" {
+		components.HealthIndicatorBig(healthy).Render(context.Background(), res)
+	} else {
+		// Default to small
+		components.HealthIndicatorSmall(healthy).Render(context.Background(), res)
+	}
+}
+
+func (h *HandlerClustered) checkNodeHealth(endpoint string) bool {
+	resp, err := http.Get("http://" + endpoint + "/-/healthy")
+	if err != nil {
+		h.logger.Error("health check failed", "endpoint", endpoint, "error", err.Error())
+		return false
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		h.logger.Error("failed to read health response", "error", err.Error())
+		return false
+	}
+
+	h.logger.Debug("health check response", "endpoint", endpoint, "status", resp.StatusCode, "body", string(body))
+
+	return resp.StatusCode == 200
+}
+
+////////////////////////////////////////////////////////////

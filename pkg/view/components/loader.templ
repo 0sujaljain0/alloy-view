@@ -1,0 +1,13 @@
+package components
+
+templ Loader(id string) {
+	<div
+		id={ id }
+		class="htmx-indicator flex items-center justify-center w-full h-full min-h-[1.5rem] min-w-[1.5rem]"
+	>
+		<div
+			style="border-width: 0.15em;"
+			class="h-[80%] w-[80%] aspect-square animate-spin rounded-full border-slate-200/30 border-t-current"
+		></div>
+	</div>
+}

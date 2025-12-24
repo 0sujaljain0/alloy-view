@@ -1,0 +1,45 @@
+package components
+
+// Small health indicator - just the dot (self-contained, pluggable)
+templ HealthIndicatorSmall(healthy bool) {
+	if healthy {
+		<span class="inline-flex items-center justify-center w-2.5 h-2.5 overflow-hidden flex-shrink-0" title="Healthy">
+			<span class="relative flex h-2.5 w-2.5">
+				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+				<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+			</span>
+		</span>
+	} else {
+		<span class="inline-flex items-center justify-center w-2.5 h-2.5 overflow-hidden flex-shrink-0" title="Unhealthy">
+			<span class="relative flex h-2.5 w-2.5">
+				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+				<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+			</span>
+		</span>
+	}
+}
+
+// Big health indicator - dot with badge text (self-contained, pluggable)
+templ HealthIndicatorBig(healthy bool) {
+	if healthy {
+		<span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-emerald-400 bg-emerald-500/10 rounded border border-emerald-500/30 flex-shrink-0">
+			<span class="inline-flex items-center justify-center w-2 h-2 overflow-hidden flex-shrink-0">
+				<span class="relative flex h-2 w-2">
+					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+					<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+				</span>
+			</span>
+			Online
+		</span>
+	} else {
+		<span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-red-400 bg-red-500/10 rounded border border-red-500/30 flex-shrink-0">
+			<span class="inline-flex items-center justify-center w-2 h-2 overflow-hidden flex-shrink-0">
+				<span class="relative flex h-2 w-2">
+					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+					<span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+				</span>
+			</span>
+			Offline
+		</span>
+	}
+}
