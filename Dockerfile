@@ -34,12 +34,7 @@ RUN apk add --no-cache \
 # 3. Copy Binary AND Config to the SAME LEVEL (/app)
 COPY --from=builder /app/main .
 COPY config.yaml .
-
-# 4. Permissions: Give the non-root user ownership of this folder
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
-    chown -R appuser:appgroup /app
-
-USER appuser
+COPY static static
 
 EXPOSE 8093
 
