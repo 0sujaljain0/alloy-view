@@ -2,7 +2,6 @@ cpu.png
 *.log
 *.pprof
 *.prof
-bin/*
 tmp/
 **/*_templ.go
 

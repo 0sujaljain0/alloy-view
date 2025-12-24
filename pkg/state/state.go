@@ -9,11 +9,11 @@ import (
 )
 
 type AppState interface {
-	String()        string
+	String() string
 	populateNodes() error
-	GetNodes()      []AlloyNode
-	InitState()     error
-	RefreshState()  error
+	GetNodes() []AlloyNode
+	InitState() error
+	RefreshState() error
 }
 
 type BaseAppState struct {

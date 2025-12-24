@@ -46,17 +46,22 @@ func ConfigureServer(port uint16, id string, alloyConfig *config.AlloyConfig, lo
 
 	fs := http.FileServer(http.Dir("./static"))
 
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", fs))
 
 	switch h := hld.(type) {
 	case *handler.HandlerClustered:
 		mux.HandleFunc(
-			"/cluster_info",
+			"GET /cluster_info",
 			middleware.InternalOnlyEndpointMiddleware(h.ClusterInfoComp),
+		)
+		mux.HandleFunc(
+			"GET /node_health",
+			middleware.InternalOnlyEndpointMiddleware(h.ServeNodeHealthIndicator),
 		)
 	default:
 		return nil, fmt.Errorf("invalid type of handler created")
 	}
+	mux.HandleFunc("GET /nodes_info", hld.ServeNodesInfoPage)
 	mux.HandleFunc("/", hld.ServeHomePage)
 	return server, nil
 }

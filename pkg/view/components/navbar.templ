@@ -1,14 +1,16 @@
 package components
 
 templ Navbar() {
-    <nav class="py-2 px-4 flex w-full justify-between bg-slate-800 items-center border-b-2 border-white">
-        <div class="w-max font-bold text-3xl">
-            <p>Alloy View</p>
-        </div>
-        @Loader("cluster-info-loading-indicator")
-        <ul class="w-max text-xl flex gap-10 items-center">
-            <a href="/config">Config</a>
-            @RefreshButton()
-        </ul>
-    </nav>
+	<nav class="py-2 px-4 flex w-full justify-between bg-slate-800 items-center border-b-2 border-white">
+		<div class="flex items-center gap-4 w-max font-bold text-3xl">
+			<a href="/">Alloy View</a>
+			<div class="w-10 h-10">
+				@Loader("cluster-info-loading-indicator")
+			</div>
+		</div>
+		<ul class="w-max text-xl flex gap-10 items-center">
+			<a href="/config">Config</a>
+			<a href="/nodes_info">Nodes</a>
+		</ul>
+	</nav>
 }
