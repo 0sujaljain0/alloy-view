@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"fmt"
 
 	"github.com/0sujaljain0/alloy-view/pkg/view"
 	"github.com/0sujaljain0/alloy-view/pkg/view/components"
@@ -19,6 +20,20 @@ func (h *HandlerClustered) ServeNodesInfoPage(res http.ResponseWriter, req *http
 	view.NodeInfoPage(h.State.GetNodes()).Render(context.Background(), res)
 }
 
+func (h *HandlerClustered) ServeSearchTargetPage(res http.ResponseWriter, req *http.Request) {
+	view.TargetSearchPage().Render(context.Background(), res)
+}
+
+
+
+func (h *HandlerClustered) TargetSearchSubmitHandler(res http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil { 
+		h.logger.Error("error while parsing the form") 
+	}
+
+	components.HtmlDataWrapper(fmt.Sprintf("%s, %s", req.FormValue("typeOfSearch"), req.FormValue("search_keyword"))).Render(context.Background(), res)
+}
 ////////////////////////////////////////////////////////////
 
 //go:generate stringer -type=NodeHealthStatus

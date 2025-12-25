@@ -14,6 +14,8 @@ type Handler interface {
 	ServeHomePage(res http.ResponseWriter, req *http.Request)
 	ServeNodesInfoPage(res http.ResponseWriter, req *http.Request)
 	ServeNodeHealthIndicator(res http.ResponseWriter, req *http.Request)
+	ServeSearchTargetPage(res http.ResponseWriter, req *http.Request)
+	TargetSearchSubmitHandler(res http.ResponseWriter, req *http.Request)
 }
 
 type BaseHandler struct {

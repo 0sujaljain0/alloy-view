@@ -54,14 +54,18 @@ func ConfigureServer(port uint16, id string, alloyConfig *config.AlloyConfig, lo
 			"GET /cluster_info",
 			middleware.InternalOnlyEndpointMiddleware(h.ClusterInfoComp),
 		)
-		mux.HandleFunc(
-			"GET /node_health",
-			middleware.InternalOnlyEndpointMiddleware(h.ServeNodeHealthIndicator),
-		)
 	default:
 		return nil, fmt.Errorf("invalid type of handler created")
 	}
+
+	mux.HandleFunc(
+		"GET /node_health",
+		middleware.InternalOnlyEndpointMiddleware(hld.ServeNodeHealthIndicator),
+	)
 	mux.HandleFunc("GET /nodes_info", hld.ServeNodesInfoPage)
-	mux.HandleFunc("/", hld.ServeHomePage)
+
+	mux.HandleFunc("GET /search_targets", hld.ServeSearchTargetPage)
+	mux.HandleFunc("POST /submit_target_search", middleware.InternalOnlyEndpointMiddleware(hld.TargetSearchSubmitHandler))
+	mux.HandleFunc("GET /", hld.ServeHomePage)
 	return server, nil
 }

@@ -1,0 +1,45 @@
+package view
+
+import "github.com/0sujaljain0/alloy-view/pkg/view/layout"
+
+templ TargetSearchPage() {
+	@layout.BaseLayout() {
+		<div class="w-full min-h-screen flex flex-col items-center justify-center">
+			<form
+                class="w-3/5 px-4 py-2 flex justify-center"
+                hx-post="/submit_target_search"
+                hx-target="#search-response-target"
+                hx-swap="innerHTML"
+            >
+				<div class="w-4/5 flex flex-col gap-2">
+					<div class="flex gap-4">
+						<span>
+							<input
+                                type="radio"
+                                id="exact"
+                                name="typeOfSearch"
+                                value="exact"
+                                checked
+                            />
+							<label for="exact">Exact</label>
+						</span>
+						<span>
+							<input
+                                type="radio"
+                                id="regex"
+                                name="typeOfSearch"
+                                value="regex"
+                            />
+							<label for="regex">Regex</label>
+						</span>
+					</div>
+					<div class="flex gap-4 w-full">
+						<input type="text" name="search_keyword" class="w-4/5 rounded-md px-2 py-1 text-black" placeholder="Target Keyword"/>
+						<button type="submit" class="w-max px-2 py-1 bg-white border-2 border-white rounded-md text-slate-900 hover:text-white hover:bg-transparent">Go</button>
+					</div>
+				</div>
+			</form>
+            <div id="search-response-target" class="w-max h-max text-black"></div>
+		</div>
+	}
+}

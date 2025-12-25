@@ -5,167 +5,153 @@ import "github.com/0sujaljain0/alloy-view/pkg/view/components"
 import "github.com/0sujaljain0/alloy-view/pkg/state"
 import "fmt"
 
-
-
 templ NodeInfoPage(nodes []state.AlloyNode) {
-    @view.BaseLayout() {
-        <div class="top-14 w-full min-h-screen flex flex-col items-center py-8 px-4">
-            
-            <!-- Page Header -->
-            <div class="w-full max-w-6xl mb-8">
-                <div class="flex items-center gap-3 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
-                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                    </svg>
-                    <h1 class="font-extrabold text-3xl text-white">Node Information</h1>
-                </div>
-                <p class="text-slate-400 text-sm ml-11">Detailed information and diagnostics for each Alloy instance</p>
-            </div>
-
-            <!-- Nodes List -->
-            <div class="w-full max-w-6xl">
-                if len(nodes) == 0 {
-                    <div class="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-xl border border-slate-700 bg-slate-800/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <span class="text-slate-400 text-lg">No nodes available</span>
-                    </div>
-                } else {
-                    <div class="flex flex-col gap-3">
-                        for idx, node := range nodes {
-                            switch n := node.(type) {
-                                case *state.K8sAlloyNode:
-                                    @NodeInfoRow(n, idx)
-                                default:
-                                    <div class="text-red-400 px-4 py-3 bg-red-900/20 rounded-lg border border-red-800">Unknown node type</div>
-                            }
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    }
+	@layout.BaseLayout() {
+		<div class="w-full min-h-screen flex flex-col items-center py-8 px-4">
+			<!-- Page Header -->
+			<div class="w-full max-w-6xl mb-8">
+				<div class="flex items-center gap-3 mb-2">
+					<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+						<rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+						<rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+						<line x1="6" y1="6" x2="6.01" y2="6"></line>
+						<line x1="6" y1="18" x2="6.01" y2="18"></line>
+					</svg>
+					<h1 class="font-extrabold text-3xl text-white">Node Information</h1>
+				</div>
+				<p class="text-slate-400 text-sm ml-11">Detailed information and diagnostics for each Alloy instance</p>
+			</div>
+			<!-- Nodes List -->
+			<div class="w-full max-w-6xl">
+				if len(nodes) == 0 {
+					<div class="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-xl border border-slate-700 bg-slate-800/50">
+						<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500">
+							<circle cx="12" cy="12" r="10"></circle>
+							<line x1="12" y1="8" x2="12" y2="12"></line>
+							<line x1="12" y1="16" x2="12.01" y2="16"></line>
+						</svg>
+						<span class="text-slate-400 text-lg">No nodes available</span>
+					</div>
+				} else {
+					<div class="flex flex-col gap-3">
+						for idx, node := range nodes {
+							switch n := node.(type) {
+								case *state.K8sAlloyNode:
+									@NodeInfoRow(n, idx)
+								default:
+									<div class="text-red-400 px-4 py-3 bg-red-900/20 rounded-lg border border-red-800">Unknown node type</div>
+							}
+						}
+					</div>
+				}
+			</div>
+		</div>
+	}
 }
 
 templ NodeInfoRow(node *state.K8sAlloyNode, idx int) {
-    {{ downloadID := fmt.Sprintf("download-btn-%d", idx) }}
-    {{ loaderID := fmt.Sprintf("download-loader-%d", idx) }}
-    {{ healthSmallID := fmt.Sprintf("health-small-%d", idx) }}
-    {{ healthBigID := fmt.Sprintf("health-big-%d", idx) }}
-    {{ endpoint := fmt.Sprintf("%s:%d", node.IP, 12345) }}
-    
-    <div class="flex flex-col lg:flex-row items-stretch gap-4 p-5 rounded-lg border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800/60 hover:border-slate-600 transition-all duration-200">
-        
-        <!-- Left Section: Node Identity & Status -->
-        <div class="flex-1 flex flex-col gap-3">
-            
-            <!-- Status Badge & IP -->
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <!-- Small health indicator with HTMX polling -->
-                    <div 
-                        id={ healthSmallID }
-                        class="flex items-center justify-center"
-                        hx-get={ fmt.Sprintf("/node_health?alloy_endpoint=%s&size=small", endpoint) }
-                        hx-trigger="load, every 10s"
-                        hx-swap="innerHTML"
-                        hx-target="this"
-                    >
-                        @components.HealthIndicatorSmall(false)
-                    </div>
-                    <span class="font-mono text-lg font-bold text-white tracking-tight">{ endpoint }</span>
-                </div>
-                <!-- Big health indicator with HTMX polling -->
-                <div 
-                    id={ healthBigID }
-                    class="flex items-center justify-center"
-                    hx-get={ fmt.Sprintf("/node_health?alloy_endpoint=%s&size=big", endpoint) }
-                    hx-trigger="load, every 10s"
-                    hx-swap="innerHTML"
-                    hx-target="this"
-                >
-                    @components.HealthIndicatorBig(false)
-                </div>
-            </div>
-
-            <!-- Pod & Node Details in Table Format -->
-            <div class="flex flex-col gap-2 text-sm">
-                <div class="flex items-start py-1.5 border-b border-slate-700/50">
-                    <span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Pod</span>
-                    <span class="text-slate-200 font-mono text-xs break-all">{ node.PodName }</span>
-                </div>
-                if node.NodeName != "" {
-                    <div class="flex items-start py-1.5 border-b border-slate-700/50">
-                        <span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Node</span>
-                        <span class="text-slate-300 font-mono text-xs">{ node.NodeName }</span>
-                    </div>
-                }
-                <div class="flex items-start py-1.5">
-                    <span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Endpoint</span>
-                    <a 
-                        href={ templ.SafeURL(fmt.Sprintf("http://%s", endpoint)) }
-                        target="_blank"
-                        class="text-slate-400 hover:text-slate-200 font-mono text-xs underline decoration-slate-600 hover:decoration-slate-400 transition-colors"
-                    >
-                        { fmt.Sprintf("http://%s", endpoint) }
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Section: Actions -->
-        <div class="flex flex-col gap-2 justify-center lg:w-64">
-            
-            <!-- Open UI Button -->
-            <a 
-                href={ templ.SafeURL(fmt.Sprintf("http://%s", endpoint)) }
-                target="_blank"
-                class="group flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white font-medium text-sm transition-all duration-200 border border-slate-600 hover:border-slate-500"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                    <polyline points="15 3 21 3 21 9"></polyline>
-                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-                <span>Open UI</span>
-            </a>
-
-            <!-- Download Support Bundle Button with Loader -->
-            <div class="relative">
-                <a 
-                    id={ downloadID }
-                    href={ templ.SafeURL(fmt.Sprintf("http://%s/-/support", endpoint)) }
-                    download={ fmt.Sprintf("alloy-support-%s.tar.gz", node.PodName) }
-                    onclick={ templ.ComponentScript{Call: fmt.Sprintf("handleDownload('%s', '%s')", downloadID, loaderID)} }
-                    class="group flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white font-medium text-sm transition-all duration-200 border border-slate-600 hover:border-slate-500"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <span>Support Bundle</span>
-                </a>
-                
-                <!-- Loader Overlay -->
-                <div id={ loaderID } class="hidden absolute inset-0 bg-slate-700/95 rounded-md">
-                    <div class="flex items-center justify-center w-full h-full">
-                        <div class="w-5 h-5">
-                            @components.Loader(fmt.Sprintf("%s-spinner", loaderID))
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
+	{{ downloadID := fmt.Sprintf("download-btn-%d", idx) }}
+	{{ loaderID := fmt.Sprintf("download-loader-%d", idx) }}
+	{{ healthSmallID := fmt.Sprintf("health-small-%d", idx) }}
+	{{ healthBigID := fmt.Sprintf("health-big-%d", idx) }}
+	{{ endpoint := fmt.Sprintf("%s:%d", node.IP, 12345) }}
+	<div class="flex flex-col lg:flex-row items-stretch gap-4 p-5 rounded-lg border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800/60 hover:border-slate-600 transition-all duration-200">
+		<!-- Left Section: Node Identity & Status -->
+		<div class="flex-1 flex flex-col gap-3">
+			<!-- Status Badge & IP -->
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<!-- Small health indicator with HTMX polling -->
+					<div
+						id={ healthSmallID }
+						class="flex items-center justify-center"
+						hx-get={ fmt.Sprintf("/node_health?alloy_endpoint=%s&size=small", endpoint) }
+						hx-trigger="load, every 10s"
+						hx-swap="innerHTML"
+						hx-target="this"
+					>
+						@components.HealthIndicatorSmall(false)
+					</div>
+					<span class="font-mono text-lg font-bold text-white tracking-tight">{ endpoint }</span>
+				</div>
+				<!-- Big health indicator with HTMX polling -->
+				<div
+					id={ healthBigID }
+					class="flex items-center justify-center"
+					hx-get={ fmt.Sprintf("/node_health?alloy_endpoint=%s&size=big", endpoint) }
+					hx-trigger="load, every 10s"
+					hx-swap="innerHTML"
+					hx-target="this"
+				>
+					@components.HealthIndicatorBig(false)
+				</div>
+			</div>
+			<!-- Pod & Node Details in Table Format -->
+			<div class="flex flex-col gap-2 text-sm">
+				<div class="flex items-start py-1.5 border-b border-slate-700/50">
+					<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Pod</span>
+					<span class="text-slate-200 font-mono text-xs break-all">{ node.PodName }</span>
+				</div>
+				if node.NodeName != "" {
+					<div class="flex items-start py-1.5 border-b border-slate-700/50">
+						<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Node</span>
+						<span class="text-slate-300 font-mono text-xs">{ node.NodeName }</span>
+					</div>
+				}
+				<div class="flex items-start py-1.5">
+					<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Endpoint</span>
+					<a
+						href={ templ.SafeURL(fmt.Sprintf("http://%s", endpoint)) }
+						target="_blank"
+						class="text-slate-400 hover:text-slate-200 font-mono text-xs underline decoration-slate-600 hover:decoration-slate-400 transition-colors"
+					>
+						{ fmt.Sprintf("http://%s", endpoint) }
+					</a>
+				</div>
+			</div>
+		</div>
+		<!-- Right Section: Actions -->
+		<div class="flex flex-col gap-2 justify-center lg:w-64">
+			<!-- Open UI Button -->
+			<a
+				href={ templ.SafeURL(fmt.Sprintf("http://%s", endpoint)) }
+				target="_blank"
+				class="group flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white font-medium text-sm transition-all duration-200 border border-slate-600 hover:border-slate-500"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+					<polyline points="15 3 21 3 21 9"></polyline>
+					<line x1="10" y1="14" x2="21" y2="3"></line>
+				</svg>
+				<span>Open UI</span>
+			</a>
+			<!-- Download Support Bundle Button with Loader -->
+			<div class="relative">
+				<a
+					id={ downloadID }
+					href={ templ.SafeURL(fmt.Sprintf("http://%s/-/support", endpoint)) }
+					download={ fmt.Sprintf("alloy-support-%s.tar.gz", node.PodName) }
+					onclick={ templ.ComponentScript{Call: fmt.Sprintf("handleDownload('%s', '%s')", downloadID, loaderID)} }
+					class="group flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white font-medium text-sm transition-all duration-200 border border-slate-600 hover:border-slate-500"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+						<polyline points="7 10 12 15 17 10"></polyline>
+						<line x1="12" y1="15" x2="12" y2="3"></line>
+					</svg>
+					<span>Support Bundle</span>
+				</a>
+				<!-- Loader Overlay -->
+				<div id={ loaderID } class="hidden absolute inset-0 bg-slate-700/95 rounded-md">
+					<div class="flex items-center justify-center w-full h-full">
+						<div class="w-5 h-5">
+							@components.Loader(fmt.Sprintf("%s-spinner", loaderID))
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 }
 
 script handleDownload(btnId, loaderId string) {
@@ -178,5 +164,3 @@ script handleDownload(btnId, loaderId string) {
         }, 3000);
     }
 }
-
-
