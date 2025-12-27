@@ -56,11 +56,13 @@ func (s *ClusteredAppState) populateNodes() error {
 			s.Nodes = make([]AlloyNode, 0)
 		}
 		for _, ep := range eps {
-			s.Nodes = append(s.Nodes, &K8sAlloyNode{
+			node := &K8sAlloyNode{
 				PodName:  ep.PodName,
 				NodeName: ep.NodeName,
 				IP:       ep.IP,
-			})
+			}
+			s.logger.Info(fmt.Sprintf("%s recognized and is feeded in the current state of the application", node))
+			s.Nodes = append(s.Nodes, node)
 		}
 		return nil
 
@@ -83,6 +85,5 @@ func (s *ClusteredAppState) RefreshState() error {
 		return err
 	}
 
-	return nil
 	return nil
 }

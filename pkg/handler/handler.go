@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/0sujaljain0/alloy-view/pkg/config"
+	"github.com/0sujaljain0/alloy-view/pkg/querier"
 	"github.com/0sujaljain0/alloy-view/pkg/state"
 )
 
@@ -21,7 +22,9 @@ type Handler interface {
 type BaseHandler struct {
 	logger *slog.Logger
 	State  state.AppState
+	apiQuerier querier.AlloyApiQuerier
 }
+
 type HandlerClustered struct {
 	BaseHandler
 	conf *config.ClusterConfig
@@ -43,10 +46,21 @@ func NewHandler(conf config.AlloyConfig, logger *slog.Logger) (Handler, error) {
 		st := state.NewClusteredAppState(cfg.SD, cfg.Mode, logger)
 		st.InitState()
 
+		apiQuerier := querier.NewClusterAlloyApiQuerier(logger)
+		querier, ok := apiQuerier.(*querier.ClusterAlloyApiQuerier)
+		if !ok {
+			logger.Error("apiQuerier not perfectly typecasting to ClusterAlloyApiQuerier")
+		}
+		err := querier.Init(st)
+		if err != nil {
+			return nil, err
+		}
+
 		return &HandlerClustered{
 			BaseHandler: BaseHandler{
 				logger: logger,
 				State:  st,
+				apiQuerier: querier,
 			},
 			conf: cfg,
 		}, nil

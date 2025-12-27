@@ -115,7 +115,7 @@ func GetEPSFromK8sSvc(namespace string, serviceName string, logger *slog.Logger)
 	return endpoints
 }
 
-func CreateTemplAttrs(input ...interface{}) (templ.Attributes, error) {
+func CreateTemplAttrs(input ...any) (templ.Attributes, error) {
 	if len(input) == 0 {
 		return nil, errors.New("while creating templ.Attributes: no attributes given")
 	}
