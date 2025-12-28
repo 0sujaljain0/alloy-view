@@ -20,7 +20,7 @@ func NewClusterAlloyApiQuerier(logger *slog.Logger) AlloyApiQuerier {
 			nodes:  make([]state.AlloyNode, 0),
 			Components: &AlloyComponents{
 				mutex:      &sync.Mutex{},
-				components: make([]AlloyComponent, 0),
+				components: make(map[uint32]AlloyComponent),
 			},
 		},
 	}

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/0sujaljain0/alloy-view/pkg/state"
+	"github.com/0sujaljain0/alloy-view/pkg/utils"
 )
 
 type AlloyApiQuerier interface {
@@ -25,23 +26,47 @@ type BaseAlloyApiQuerier struct {
 
 type AlloyComponents struct {
 	mutex      *sync.Mutex
-	components []AlloyComponent
+	components map[uint32]AlloyComponent
 }
 
-func (c *AlloyComponents) AddComponent(comp AlloyComponent) {
+func (c *AlloyComponents) Len() int {
+	return len(c.components)
+}
+
+func (c *AlloyComponents) AddComponent(comp AlloyComponent, logger *slog.Logger) {
 	if comp == nil {
 		return
 	}
+
+	idKey := utils.HashString(comp.GetName())
+	_, found := c.components[idKey]
+
 	c.mutex.Lock()
-	c.components = append(c.components, comp)
-	c.mutex.Unlock()
+	defer c.mutex.Unlock()
+	if !found {
+		logger.Info(fmt.Sprintf("discovered: %s", comp.GetName()))
+		c.components[idKey] = comp
+		return
+	} 
+
+	logger.Debug(fmt.Sprintf("already discovered: %s, so skipping", comp.GetName()))
 }
 
-func (c *AlloyComponents) GetComponents() []AlloyComponent { return c.components }
+func (c *AlloyComponents) GetComponents() []AlloyComponent{ 
+	var values []AlloyComponent = make([]AlloyComponent, 0)
+
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	for _, value := range c.components {
+		values = append(values, value)
+	}
+
+	return values
+}
 
 func (q *BaseAlloyApiQuerier) buildComponentInventory() error {
 	var wg *sync.WaitGroup = &sync.WaitGroup{}
-	for _, node := range q.nodes[:1] {
+	for _, node := range q.nodes {
 		wg.Add(1)
 		go addNodeComponents(node, q.Components, wg, q.logger)
 	}
@@ -64,21 +89,17 @@ func addNodeComponents(node state.AlloyNode, comps *AlloyComponents, wg *sync.Wa
 		return err
 	}
 
-	// FIX: THIS NEEDS TO BE FIXED, UNMARSHALLING LOGIC IS NOT SEGREGATING THE OBJECTS INSIDE THE COMPONENTS ARRAY IN
-	// THE RESPONSE.
-	var data []map[string]any
-	err = json.Unmarshal(body, &data)
-	logger.Info(fmt.Sprintf("%d", len(data[0])))
-	logger.Info(fmt.Sprintf(" len -> %d", len(data)))
-	for _, ele:= range data {
-		for key, value := range ele {
-			logger.Info(fmt.Sprintf("%s -> %+v", key, value))
-		}
-	}
-	comps.AddComponent(nil)
-	if err != nil {
+	var data []*BaseAlloyComponent
+	if err = json.Unmarshal(body, &data); err != nil {
 		return err
 	}
+	for _, ele := range data {
+		// logger.Info(fmt.Sprintf("name of the component: %s", ele.Name))
+		comps.AddComponent(ele, logger)
+	}
+
+	logger.Info(fmt.Sprintf("len of components: %d", comps.Len()))
+
 
 	return nil
 }
@@ -95,6 +116,7 @@ func (s *HealthState) String() string {
 
 type AlloyComponent interface {
 	GetHealth() *HealthState
+	GetName() string
 }
 
 type BaseAlloyComponent struct {
@@ -104,12 +126,20 @@ type BaseAlloyComponent struct {
 }
 
 func (b *BaseAlloyComponent) GetHealth() *HealthState { return b.Health }
+func (b *BaseAlloyComponent) GetName() string { return b.Name }
+
+//TODO : THIS NEEDS TO BE IMPLEMENTED FIRST
+func (b *BaseAlloyComponent) concretizeAlloyComponent() AlloyComponent {
+	return nil
+}
 
 type PrometheusScrapeAlloyComponent struct {
-	BaseAlloyComponent
+	*BaseAlloyComponent
 	Scrapes Scrapes
 }
 
+
+//TODO : THIS NEEDS TO BE IMPLEMENTED FIRST
 type Scrape struct {
 }
 
