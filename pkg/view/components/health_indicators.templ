@@ -1,5 +1,7 @@
 package components
 
+import "github.com/0sujaljain0/alloy-view/pkg/querier"
+
 // Small health indicator - just the dot (self-contained, pluggable)
 templ HealthIndicatorSmall(healthy bool) {
 	if healthy {
@@ -40,6 +42,47 @@ templ HealthIndicatorBig(healthy bool) {
 				</span>
 			</span>
 			Offline
+		</span>
+	}
+}
+
+// Health status badge for component health states
+templ HealthStatusBadge(health *querier.HealthState) {
+	if health != nil {
+		switch health.State {
+			case "HEALTHY", "healthy":
+				<span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-emerald-400 bg-emerald-500/10 rounded border border-emerald-500/30 flex-shrink-0">
+					<span class="inline-flex items-center justify-center w-2 h-2 overflow-hidden flex-shrink-0">
+						<span class="relative flex h-2 w-2">
+							<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+							<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+						</span>
+					</span>
+					Healthy
+				</span>
+			case "UNHEALTHY", "unhealthy":
+				<span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-red-400 bg-red-500/10 rounded border border-red-500/30 flex-shrink-0">
+					<span class="inline-flex items-center justify-center w-2 h-2 overflow-hidden flex-shrink-0">
+						<span class="relative flex h-2 w-2">
+							<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+							<span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+						</span>
+					</span>
+					Unhealthy
+				</span>
+			default:
+				<span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-amber-400 bg-amber-500/10 rounded border border-amber-500/30 flex-shrink-0">
+					<span class="inline-flex items-center justify-center w-2 h-2 overflow-hidden flex-shrink-0">
+						<span class="relative flex h-2 w-2">
+							<span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+						</span>
+					</span>
+					{ health.State }
+				</span>
+		}
+	} else {
+		<span class="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-slate-500 bg-slate-700/20 rounded border border-slate-600/30 flex-shrink-0">
+			Unknown
 		</span>
 	}
 }

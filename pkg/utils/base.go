@@ -23,7 +23,6 @@ func NewLogger(logFilePath string) (*slog.Logger, func()) {
 	return slog.New(slog.NewTextHandler(logFile, nil)), closeFunc
 }
 
-
 func HashString(str string) uint32 {
 	h := fnv.New32a()
 	h.Write([]byte(str))

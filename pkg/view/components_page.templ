@@ -1,0 +1,339 @@
+package view
+
+import "github.com/0sujaljain0/alloy-view/pkg/view/layout"
+import "github.com/0sujaljain0/alloy-view/pkg/view/components"
+import "github.com/0sujaljain0/alloy-view/pkg/querier"
+import "fmt"
+import "sort"
+
+// Helper function to get unique component types
+func getUniqueTypes(components []querier.AlloyComponent) []string {
+	typeMap := make(map[string]bool)
+	for _, comp := range components {
+		typeMap[comp.GetType()] = true
+	}
+	
+	var types []string
+	for typeStr := range typeMap {
+		types = append(types, typeStr)
+	}
+	
+	// Sort alphabetically for consistent display
+	sort.Strings(types)
+	return types
+}
+
+// Helper function to get target count for a component
+func getTargetCount(comp querier.AlloyComponent) string {
+	switch c := comp.(type) {
+	case *querier.PrometheusScrapeAlloyComponent:
+		return fmt.Sprintf("%d", len(c.Scrapes))
+	default:
+		return "N/A"
+	}
+}
+
+templ ComponentsPage(componentsWrapper *querier.AlloyComponents) {
+	@layout.BaseLayout() {
+		<div class="w-full min-h-screen flex flex-col items-center py-8 px-4">
+			<!-- Page Header -->
+			<div class="w-full max-w-6xl mb-8">
+				<div class="flex items-center gap-3 mb-2">
+					<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+						<rect x="3" y="3" width="7" height="7"></rect>
+						<rect x="14" y="3" width="7" height="7"></rect>
+						<rect x="14" y="14" width="7" height="7"></rect>
+						<rect x="3" y="14" width="7" height="7"></rect>
+					</svg>
+					<h1 class="font-extrabold text-3xl text-white">Components</h1>
+				</div>
+				<p class="text-slate-400 text-sm ml-11">Discovered Alloy components across all nodes</p>
+				<p class="text-slate-500 text-sm ml-11 mt-1">Total: { fmt.Sprintf("%d", componentsWrapper.Len()) } components</p>
+			</div>
+			
+			<!-- Filter and Search Section -->
+			<div class="w-full max-w-6xl mb-6 space-y-4">
+				<!-- Search Bar -->
+				<div class="flex items-center gap-4 p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+					<div class="flex items-center gap-3 flex-1">
+						<!-- Search Mode Selector -->
+						<label class="text-slate-400 text-sm font-medium">Search by:</label>
+						<select 
+							id="search-mode" 
+							class="px-3 py-2 rounded-md bg-slate-700 border border-slate-600 text-slate-200 text-sm focus:outline-none focus:border-slate-500 hover:bg-slate-600 transition-colors cursor-pointer"
+						>
+							<option value="component" selected>Component Name</option>
+							<option value="target">Target</option>
+						</select>
+						
+						<!-- Search Input -->
+						<div class="flex-1 relative">
+							<input 
+								type="text" 
+								id="search-input" 
+								placeholder="Type to search..."
+								class="w-full px-4 py-2 pl-10 rounded-md bg-slate-700 border border-slate-600 text-slate-200 text-sm placeholder-slate-500 focus:outline-none focus:border-slate-500 hover:bg-slate-600 transition-colors"
+								oninput="performSearch()"
+							/>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
+								<circle cx="11" cy="11" r="8"></circle>
+								<path d="m21 21-4.35-4.35"></path>
+							</svg>
+						</div>
+						
+						<!-- Clear Button -->
+						<button 
+							id="clear-search"
+							onclick="clearSearch()"
+							class="px-3 py-2 rounded-md bg-slate-700 border border-slate-600 text-slate-400 text-sm hover:bg-slate-600 hover:text-slate-200 transition-colors"
+						>
+							Clear
+						</button>
+					</div>
+				</div>
+				
+				<!-- Type Filter -->
+				<div class="flex items-center gap-4">
+					<label for="type-filter" class="text-slate-400 text-sm font-medium">Filter by Type:</label>
+					<select 
+						id="type-filter" 
+						class="px-4 py-2 rounded-md bg-slate-700 border border-slate-600 text-slate-200 text-sm focus:outline-none focus:border-slate-500 hover:bg-slate-600 transition-colors cursor-pointer"
+						onchange="applyFilters()"
+					>
+						<option value="all" selected>All Types</option>
+						{{ uniqueTypes := getUniqueTypes(componentsWrapper.GetComponents()) }}
+						for _, typeStr := range uniqueTypes {
+							<option value={ typeStr }>{ typeStr }</option>
+						}
+					</select>
+					<span id="filter-count" class="text-slate-500 text-sm"></span>
+				</div>
+			</div>
+			
+			<!-- Components List -->
+			<div class="w-full max-w-6xl">
+				if componentsWrapper.Len() == 0 {
+					<div class="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-xl border border-slate-700 bg-slate-800/50">
+						<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500">
+							<circle cx="12" cy="12" r="10"></circle>
+							<line x1="12" y1="8" x2="12" y2="12"></line>
+							<line x1="12" y1="16" x2="12.01" y2="16"></line>
+						</svg>
+						<span class="text-slate-400 text-lg">No components discovered</span>
+					</div>
+				} else {
+					{{ components := componentsWrapper.GetComponents() }}
+					<div id="components-list" class="flex flex-col gap-3">
+						for idx, comp := range components {
+							{{ targetCount := getTargetCount(comp) }}
+							<div 
+								class="component-row" 
+								data-type={ comp.GetType() }
+								data-name={ comp.GetName() }
+								data-target={ targetCount }
+							>
+								@ComponentRow(comp, idx)
+							</div>
+						}
+					</div>
+					<!-- No results message (hidden by default) -->
+					<div id="no-results" class="hidden flex-col items-center justify-center gap-4 py-16 px-6 rounded-xl border border-slate-700 bg-slate-800/50">
+						<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500">
+							<circle cx="12" cy="12" r="10"></circle>
+							<line x1="15" y1="9" x2="9" y2="15"></line>
+							<line x1="9" y1="9" x2="15" y2="15"></line>
+						</svg>
+						<span class="text-slate-400 text-lg">No components match the selected filter</span>
+					</div>
+				}
+			</div>
+		</div>
+		
+		<script>
+			let currentSearch = '';
+			let currentType = 'all';
+			
+			function performSearch() {
+				const searchInput = document.getElementById('search-input');
+				currentSearch = searchInput.value.toLowerCase();
+				applyFilters();
+			}
+			
+			function clearSearch() {
+				document.getElementById('search-input').value = '';
+				currentSearch = '';
+				applyFilters();
+			}
+			
+			function applyFilters() {
+				const typeFilter = document.getElementById('type-filter');
+				const searchMode = document.getElementById('search-mode').value;
+				currentType = typeFilter.value;
+				
+				const components = document.querySelectorAll('.component-row');
+				const noResults = document.getElementById('no-results');
+				const filterCount = document.getElementById('filter-count');
+				let visibleCount = 0;
+				
+				components.forEach(component => {
+					const componentType = component.getAttribute('data-type');
+					const componentName = component.getAttribute('data-name').toLowerCase();
+					const targetCount = component.getAttribute('data-target');
+					
+					// Check type filter
+					const typeMatch = currentType === 'all' || componentType === currentType;
+					
+					// Check search filter
+					let searchMatch = true;
+					if (currentSearch) {
+						if (searchMode === 'component') {
+							searchMatch = componentName.includes(currentSearch);
+						} else if (searchMode === 'target') {
+							// Search for components with specific target counts or ranges
+							if (targetCount !== 'N/A') {
+								if (currentSearch.includes('>')) {
+									const num = parseInt(currentSearch.replace('>', '').trim());
+									searchMatch = !isNaN(num) && parseInt(targetCount) > num;
+								} else if (currentSearch.includes('<')) {
+									const num = parseInt(currentSearch.replace('<', '').trim());
+									searchMatch = !isNaN(num) && parseInt(targetCount) < num;
+								} else if (currentSearch.includes('=')) {
+									const num = parseInt(currentSearch.replace('=', '').trim());
+									searchMatch = !isNaN(num) && parseInt(targetCount) === num;
+								} else {
+									// Direct number search
+									searchMatch = targetCount.includes(currentSearch);
+								}
+							} else {
+								searchMatch = false;
+							}
+						}
+					}
+					
+					// Show/hide based on both filters
+					if (typeMatch && searchMatch) {
+						component.style.display = 'block';
+						visibleCount++;
+					} else {
+						component.style.display = 'none';
+					}
+				});
+				
+				// Update UI feedback
+				if (visibleCount === 0) {
+					noResults.classList.remove('hidden');
+					noResults.classList.add('flex');
+					filterCount.textContent = '';
+				} else {
+					noResults.classList.add('hidden');
+					noResults.classList.remove('flex');
+					
+					let filterText = [];
+					if (currentType !== 'all') {
+						filterText.push(`type: ${currentType}`);
+					}
+					if (currentSearch) {
+						const searchMode = document.getElementById('search-mode').value;
+						filterText.push(`${searchMode}: "${currentSearch}"`);
+					}
+					
+					if (filterText.length > 0) {
+						filterCount.textContent = `Showing ${visibleCount} component${visibleCount !== 1 ? 's' : ''} (${filterText.join(', ')})`;
+					} else {
+						filterCount.textContent = '';
+					}
+				}
+			}
+			
+			// Add help text for target search
+			document.getElementById('search-mode').addEventListener('change', function() {
+				const searchInput = document.getElementById('search-input');
+				if (this.value === 'target') {
+					searchInput.placeholder = 'Enter number or use >, <, = (e.g., ">5", "=0")';
+				} else {
+					searchInput.placeholder = 'Type to search...';
+				}
+				performSearch();
+			});
+		</script>
+	}
+}
+
+templ ComponentRow(comp querier.AlloyComponent, idx int) {
+	{{ health := comp.GetHealth() }}
+	{{ stateStr := "" }}
+	if health != nil {
+		{{ stateStr = health.State }}
+	}
+	{{ isHealthy := stateStr == "HEALTHY" || stateStr == "healthy" }}
+	<div class="flex flex-col gap-3 p-5 rounded-lg border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800/60 hover:border-slate-600 transition-all duration-200">
+		<!-- Component Name and Health Status -->
+		<div class="flex items-center justify-between">
+			<div class="flex items-center gap-3">
+				<!-- Health indicator -->
+				if isHealthy {
+					@components.HealthIndicatorSmall(true)
+				} else {
+					@components.HealthIndicatorSmall(false)
+				}
+				<span class="font-mono text-lg font-bold text-white tracking-tight">{ comp.GetName() }</span>
+			</div>
+			<!-- Health status badge -->
+			@components.HealthStatusBadge(health)
+		</div>
+		
+		<!-- Component Details Table -->
+		<div class="flex flex-col gap-2 text-sm">
+			<!-- Component Type -->
+			<div class="flex items-start py-1.5 border-b border-slate-700/50">
+				<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Type</span>
+				<span class="text-slate-200 font-mono text-xs">
+                    { comp.GetType() }
+				</span>
+			</div>
+			
+			<!-- Health State -->
+			if health != nil {
+				<div class="flex items-start py-1.5 border-b border-slate-700/50">
+					<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">State</span>
+					<span class={ "font-mono text-xs", templ.KV("text-emerald-400", isHealthy), templ.KV("text-red-400", !isHealthy) }>
+						{ health.State }
+					</span>
+				</div>
+				
+				<!-- Health Message -->
+				if health.Message != "" {
+					<div class="flex items-start py-1.5 border-b border-slate-700/50">
+						<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Message</span>
+						<span class="text-slate-300 text-xs">{ health.Message }</span>
+					</div>
+				}
+				
+				<!-- Last Updated -->
+				if health.UpdatedTime != "" {
+					<div class="flex items-start py-1.5 border-b border-slate-700/50">
+						<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Updated</span>
+						<span class="text-slate-400 font-mono text-xs">{ health.UpdatedTime }</span>
+					</div>
+				}
+			}
+			
+			<!-- Type-specific details -->
+			@ComponentTypeDetails(comp)
+		</div>
+	</div>
+}
+
+
+
+templ ComponentTypeDetails(comp querier.AlloyComponent) {
+	switch c := comp.(type) {
+		case *querier.PrometheusScrapeAlloyComponent:
+			<div class="flex items-start py-1.5">
+				<span class="text-slate-500 font-semibold uppercase text-xs tracking-wider w-24 flex-shrink-0">Targets</span>
+				<span class="font-mono text-sm font-bold text-blue-300">{ fmt.Sprintf("%d", len(c.Scrapes)) }</span>
+			</div>
+		default:
+			<!-- No additional details for other types -->
+	}
+}

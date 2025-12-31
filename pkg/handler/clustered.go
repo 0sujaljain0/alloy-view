@@ -15,6 +15,9 @@ func (h *HandlerClustered) ServeHomePage(res http.ResponseWriter, req *http.Requ
 	view.Home(h.State).Render(context.Background(), res)
 }
 
+func (h *HandlerClustered) ServeComponentsPage(res http.ResponseWriter, req *http.Request) {
+	view.ComponentsPage(h.apiQuerier.GetComponents()).Render(context.Background(), res)
+}
 func (h *HandlerClustered) ServeNodesInfoPage(res http.ResponseWriter, req *http.Request) {
 	h.State.RefreshState()
 	view.NodeInfoPage(h.State.GetNodes()).Render(context.Background(), res)

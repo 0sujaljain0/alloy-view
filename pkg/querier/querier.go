@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"sync"
 
 	"github.com/0sujaljain0/alloy-view/pkg/state"
@@ -16,12 +17,17 @@ type AlloyApiQuerier interface {
 	Init(state.AppState) error
 	buildInventory(nodes []state.AlloyNode) error
 	SearchTarget(string) error
+	GetComponents() *AlloyComponents
 }
 
 type BaseAlloyApiQuerier struct {
 	nodes      []state.AlloyNode
 	logger     *slog.Logger
 	Components *AlloyComponents
+}
+
+func (q *ClusterAlloyApiQuerier) GetComponents() *AlloyComponents {
+	return q.Components
 }
 
 type AlloyComponents struct {
@@ -37,7 +43,7 @@ func (c *AlloyComponents) AddComponent(comp AlloyComponent, logger *slog.Logger)
 	if comp == nil {
 		return
 	}
-
+	// INFO: USING HASHING TO ENSURE UNIQUE COMPONENTS
 	idKey := utils.HashString(comp.GetName())
 	_, found := c.components[idKey]
 
@@ -47,12 +53,12 @@ func (c *AlloyComponents) AddComponent(comp AlloyComponent, logger *slog.Logger)
 		logger.Info(fmt.Sprintf("discovered: %s", comp.GetName()))
 		c.components[idKey] = comp
 		return
-	} 
+	}
 
 	logger.Debug(fmt.Sprintf("already discovered: %s, so skipping", comp.GetName()))
 }
 
-func (c *AlloyComponents) GetComponents() []AlloyComponent{ 
+func (c *AlloyComponents) GetComponents() []AlloyComponent {
 	var values []AlloyComponent = make([]AlloyComponent, 0)
 
 	c.mutex.Lock()
@@ -95,11 +101,11 @@ func addNodeComponents(node state.AlloyNode, comps *AlloyComponents, wg *sync.Wa
 	}
 	for _, ele := range data {
 		// logger.Info(fmt.Sprintf("name of the component: %s", ele.Name))
-		comps.AddComponent(ele, logger)
+		el := ele.concretizeAlloyComponent()
+		comps.AddComponent(el, logger)
 	}
 
 	logger.Info(fmt.Sprintf("len of components: %d", comps.Len()))
-
 
 	return nil
 }
@@ -117,20 +123,37 @@ func (s *HealthState) String() string {
 type AlloyComponent interface {
 	GetHealth() *HealthState
 	GetName() string
+	GetType() string
 }
 
 type BaseAlloyComponent struct {
-	Name   string       `json:"localID"`
-	Type   string       `json:"name"`
-	Health *HealthState `json:"health"`
+	Name           string       `json:"localID"`
+	Type           string       `json:"name"`
+	Health         *HealthState `json:"health"`
+	PopulateStruct func() error
 }
 
+func (b *BaseAlloyComponent) GetType() string         { return b.Type }
 func (b *BaseAlloyComponent) GetHealth() *HealthState { return b.Health }
-func (b *BaseAlloyComponent) GetName() string { return b.Name }
+func (b *BaseAlloyComponent) GetName() string         { return b.Name }
 
-//TODO : THIS NEEDS TO BE IMPLEMENTED FIRST
+var (
+	rePrometheusScrape = regexp.MustCompile(".*prometheus.scrape.*")
+)
+
 func (b *BaseAlloyComponent) concretizeAlloyComponent() AlloyComponent {
-	return nil
+	switch {
+	case rePrometheusScrape.MatchString(b.Type):
+		component := &PrometheusScrapeAlloyComponent{
+			BaseAlloyComponent: b,
+			Scrapes:            make(Scrapes, 0),
+		}
+		component.PopulateStruct = component.populate
+
+		return component
+	default:
+		return b
+	}
 }
 
 type PrometheusScrapeAlloyComponent struct {
@@ -138,8 +161,8 @@ type PrometheusScrapeAlloyComponent struct {
 	Scrapes Scrapes
 }
 
+func (ps *PrometheusScrapeAlloyComponent) populate() error { return nil }
 
-//TODO : THIS NEEDS TO BE IMPLEMENTED FIRST
 type Scrape struct {
 }
 

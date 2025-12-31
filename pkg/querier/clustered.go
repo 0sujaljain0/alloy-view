@@ -26,7 +26,7 @@ func NewClusterAlloyApiQuerier(logger *slog.Logger) AlloyApiQuerier {
 	}
 }
 
-func (q * ClusterAlloyApiQuerier) Init(s state.AppState) error {
+func (q *ClusterAlloyApiQuerier) Init(s state.AppState) error {
 	if err := q.buildInventory(s.GetNodes()); err != nil {
 		return err
 	}

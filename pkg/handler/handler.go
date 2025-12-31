@@ -17,11 +17,12 @@ type Handler interface {
 	ServeNodeHealthIndicator(res http.ResponseWriter, req *http.Request)
 	ServeSearchTargetPage(res http.ResponseWriter, req *http.Request)
 	TargetSearchSubmitHandler(res http.ResponseWriter, req *http.Request)
+	ServeComponentsPage(res http.ResponseWriter, req *http.Request)
 }
 
 type BaseHandler struct {
-	logger *slog.Logger
-	State  state.AppState
+	logger     *slog.Logger
+	State      state.AppState
 	apiQuerier querier.AlloyApiQuerier
 }
 
@@ -58,8 +59,8 @@ func NewHandler(conf config.AlloyConfig, logger *slog.Logger) (Handler, error) {
 
 		return &HandlerClustered{
 			BaseHandler: BaseHandler{
-				logger: logger,
-				State:  st,
+				logger:     logger,
+				State:      st,
 				apiQuerier: querier,
 			},
 			conf: cfg,
