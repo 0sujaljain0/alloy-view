@@ -156,11 +156,15 @@ func (b *BaseAlloyComponent) concretizeAlloyComponent() AlloyComponent {
 	}
 }
 
+
+// TODO: 2. Create a Concrete Component for discovery.relabel also
+
 type PrometheusScrapeAlloyComponent struct {
 	*BaseAlloyComponent
 	Scrapes Scrapes
 }
 
+// TODO: 1. Figure out a way collecting all the scrape targets from the all the nodes for a "prometheus.scrape component".
 func (ps *PrometheusScrapeAlloyComponent) populate() error { return nil }
 
 type Scrape struct {
