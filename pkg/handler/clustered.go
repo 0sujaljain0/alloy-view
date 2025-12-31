@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
 	"github.com/0sujaljain0/alloy-view/pkg/view"
 	"github.com/0sujaljain0/alloy-view/pkg/view/components"
 )
@@ -46,8 +45,9 @@ const (
 	UNHEALTHY
 	NOT_REACHABLE
 )
-
+/////////////////////////////////////////////////////////////
 // /////////////////// INTERNAL SERVING /////////////////////
+/////////////////////////////////////////////////////////////
 func (h *HandlerClustered) ClusterInfoComp(res http.ResponseWriter, req *http.Request) {
 	h.State.RefreshState()
 	components.ClusterInfo(h.State.GetNodes()).Render(context.Background(), res)
@@ -94,4 +94,22 @@ func (h *HandlerClustered) checkNodeHealth(endpoint string) bool {
 	return resp.StatusCode == 200
 }
 
+func (h *HandlerClustered) ServeComponentsFilter(res http.ResponseWriter, req *http.Request) {
+    // 1. Parse query parameters
+    search := req.URL.Query().Get("search")
+    searchMode := req.URL.Query().Get("search_mode") 
+    typeFilter := req.URL.Query().Get("type_filter")
+    
+    // 2. Get all components
+    allComponents := h.apiQuerier.GetComponents().GetComponents()
+    
+    // 3. Apply filters
+    filteredComponents := filterComponents(allComponents, search, searchMode, typeFilter)
+    
+    // 4. Render the filtered list
+    view.ComponentsList(filteredComponents).Render(context.Background(), res)
+}
+
 ////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////

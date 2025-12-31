@@ -62,12 +62,17 @@ func ConfigureServer(port uint16, id string, alloyConfig *config.AlloyConfig, lo
 		"GET /node_health",
 		middleware.InternalOnlyEndpointMiddleware(hld.ServeNodeHealthIndicator),
 	)
+	mux.HandleFunc(
+		"GET /components/filter/",
+		middleware.InternalOnlyEndpointMiddleware(hld.ServeComponentsFilter),
+	)
+	mux.HandleFunc(
+		"POST /submit_target_search",
+		middleware.InternalOnlyEndpointMiddleware(hld.TargetSearchSubmitHandler),
+	)
+
 	mux.HandleFunc("GET /nodes_info", hld.ServeNodesInfoPage)
 	mux.HandleFunc("GET /components", hld.ServeComponentsPage)
-
-	mux.HandleFunc("GET /search_targets", hld.ServeSearchTargetPage)
-	mux.HandleFunc("POST /submit_target_search", middleware.InternalOnlyEndpointMiddleware(hld.TargetSearchSubmitHandler))
-
 	mux.HandleFunc("GET /", hld.ServeHomePage)
 	return server, nil
 }

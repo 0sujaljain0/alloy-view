@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"regexp"
 	"sync"
 
 	"github.com/0sujaljain0/alloy-view/pkg/state"
@@ -101,7 +100,7 @@ func addNodeComponents(node state.AlloyNode, comps *AlloyComponents, wg *sync.Wa
 	}
 	for _, ele := range data {
 		// logger.Info(fmt.Sprintf("name of the component: %s", ele.Name))
-		el := ele.concretizeAlloyComponent()
+		el := concretizeAlloyComponent(ele)
 		comps.AddComponent(el, logger)
 	}
 
@@ -110,64 +109,3 @@ func addNodeComponents(node state.AlloyNode, comps *AlloyComponents, wg *sync.Wa
 	return nil
 }
 
-type HealthState struct {
-	State       string `json:"state"`
-	Message     string `json:"message"`
-	UpdatedTime string `json:"updatedTime"`
-}
-
-func (s *HealthState) String() string {
-	return fmt.Sprintf("{ %s | %s | %s }", s.State, s.Message, s.UpdatedTime)
-}
-
-type AlloyComponent interface {
-	GetHealth() *HealthState
-	GetName() string
-	GetType() string
-}
-
-type BaseAlloyComponent struct {
-	Name           string       `json:"localID"`
-	Type           string       `json:"name"`
-	Health         *HealthState `json:"health"`
-	PopulateStruct func() error
-}
-
-func (b *BaseAlloyComponent) GetType() string         { return b.Type }
-func (b *BaseAlloyComponent) GetHealth() *HealthState { return b.Health }
-func (b *BaseAlloyComponent) GetName() string         { return b.Name }
-
-var (
-	rePrometheusScrape = regexp.MustCompile(".*prometheus.scrape.*")
-)
-
-func (b *BaseAlloyComponent) concretizeAlloyComponent() AlloyComponent {
-	switch {
-	case rePrometheusScrape.MatchString(b.Type):
-		component := &PrometheusScrapeAlloyComponent{
-			BaseAlloyComponent: b,
-			Scrapes:            make(Scrapes, 0),
-		}
-		component.PopulateStruct = component.populate
-
-		return component
-	default:
-		return b
-	}
-}
-
-
-// TODO: 2. Create a Concrete Component for discovery.relabel also
-
-type PrometheusScrapeAlloyComponent struct {
-	*BaseAlloyComponent
-	Scrapes Scrapes
-}
-
-// TODO: 1. Figure out a way collecting all the scrape targets from the all the nodes for a "prometheus.scrape component".
-func (ps *PrometheusScrapeAlloyComponent) populate() error { return nil }
-
-type Scrape struct {
-}
-
-type Scrapes []*Scrape

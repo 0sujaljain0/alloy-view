@@ -18,6 +18,7 @@ type Handler interface {
 	ServeSearchTargetPage(res http.ResponseWriter, req *http.Request)
 	TargetSearchSubmitHandler(res http.ResponseWriter, req *http.Request)
 	ServeComponentsPage(res http.ResponseWriter, req *http.Request)
+	ServeComponentsFilter(res http.ResponseWriter, req *http.Request)
 }
 
 type BaseHandler struct {
